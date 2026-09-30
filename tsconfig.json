@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@rippley/blackbox-protocol": ["packages/protocol/src/index.ts"],
+      "@rippley/blackbox-sdk": ["packages/sdk/src/index.ts"]
+    }
+  },
+  "include": ["apps", "packages", "scripts", "examples", "tests", "playwright.config.ts"],
+  "exclude": ["node_modules", "**/dist"]
+}

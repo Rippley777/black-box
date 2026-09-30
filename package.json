@@ -1,0 +1,57 @@
+{
+  "name": "black-box",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20.15"
+  },
+  "scripts": {
+    "dev": "tsx scripts/dev.ts",
+    "daemon": "tsx apps/daemon/src/cli.ts",
+    "dashboard": "vite --config apps/dashboard/vite.config.ts",
+    "build": "npm run typecheck && npm run build:packages && vite build --config apps/dashboard/vite.config.ts && esbuild apps/daemon/src/cli.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/daemon.js",
+    "package:azure": "npm run build && node scripts/package-azure.mjs",
+    "build:packages": "tsc -p packages/protocol/tsconfig.build.json && tsc -p packages/sdk/tsconfig.build.json",
+    "start": "node dist/daemon.js",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "test:e2e": "playwright test",
+    "example": "tsx examples/ecosystem.ts",
+    "logs": "tsx scripts/ingest-logs.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@fontsource-variable/geist": "^5.2.5",
+    "@fontsource-variable/geist-mono": "^5.2.6",
+    "@rippley/blackbox-protocol": "0.1.0",
+    "@rippley/blackbox-sdk": "0.1.0",
+    "better-sqlite3": "^11.10.0",
+    "lucide-react": "^0.468.0",
+    "mssql": "^12.7.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "ws": "^8.18.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.51.1",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/mssql": "^12.3.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/ws": "^8.5.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "esbuild": "^0.25.0",
+    "prettier": "^3.9.9",
+    "tsx": "^4.20.0",
+    "typescript": "~5.9.3",
+    "vite": "^6.1.0"
+  }
+}
