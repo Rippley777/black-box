@@ -1,0 +1,54 @@
+name: Deploy existing Azure F1 application
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["docs/**", "**/*.md"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: azure-production
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      VITE_HOUSE_EDGE_PROJECT: ${{ vars.VITE_HOUSE_EDGE_PROJECT }}
+      VITE_HOUSE_EDGE_KEY: ${{ vars.VITE_HOUSE_EDGE_KEY }}
+      VITE_HOUSE_EDGE_ENDPOINT: ${{ vars.VITE_HOUSE_EDGE_ENDPOINT }}
+      NEXT_PUBLIC_HOUSE_EDGE_PROJECT: ${{ vars.NEXT_PUBLIC_HOUSE_EDGE_PROJECT }}
+      NEXT_PUBLIC_HOUSE_EDGE_KEY: ${{ vars.NEXT_PUBLIC_HOUSE_EDGE_KEY }}
+      NEXT_PUBLIC_HOUSE_EDGE_ENDPOINT: ${{ vars.NEXT_PUBLIC_HOUSE_EDGE_ENDPOINT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Build production application
+        run: npm run build
+      - name: Package Linux runtime without local data or credentials
+        run: |
+          node scripts/package-azure.mjs
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      # Code deployment only: this workflow cannot create or upgrade a plan.
+      - uses: azure/webapps-deploy@v3
+        with:
+          app-name: rippley-black-box-2027
+          package: /tmp/black-box-azure.zip
+      - name: Verify deployed application
+        run: |
+          for attempt in $(seq 1 12); do
+            if curl --fail --silent --show-error --max-time 90 'https://rippley-black-box-2027.azurewebsites.net/login' -o "$RUNNER_TEMP/azure-smoke" && grep -Fq 'BLACK BOX' "$RUNNER_TEMP/azure-smoke"; then echo 'Application verified'; exit 0; fi
+            sleep 10
+          done
+          echo '::error::Application smoke check failed.'
+          exit 1
