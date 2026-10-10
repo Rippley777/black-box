@@ -242,13 +242,15 @@ Document major decisions below.
 
 ### ADR-007: Shuffle Owns Subscription Strategy and Evidence
 
-**Decision:** Shuffle is an independently deployable, mobile-first subscription planning application. React and Capacitor clients share the same versioned API, household data, deterministic optimizer, and AI adapters. Its initial server uses a private relational SQLite database on persistent local disk; it does not share another application's tables or runtime.
+**Decision:** Shuffle is an independently deployable, mobile-first subscription planning application. React and Capacitor clients share the same versioned API, household data, deterministic optimizer, and AI adapters. Local development uses private SQLite on local disk; the invite-only hosted alpha uses its own Azure SQL free-offer database through the same asynchronous repository layer. It does not share another application's tables or runtime.
 
 **Boundary:** AI produces reviewable proposals. An owner approves a specific billing action; the deterministic server validates current state and permissions. Provider authentication happens directly with the provider. Guided activation, pause, plan changes, and cancellation require separately recorded evidence, with user reports distinguished from independent verification. Savings have a frozen baseline and provenance; projections never become realized savings solely because a recommendation was accepted.
 
 **Integrations:** Plaid, TMDB/JustWatch, OpenRouter, and Anthropic are optional adapters. No provider credentials are required for manual subscription management. Black Box routing, House Edge telemetry, shared identity, and a live Shipwreck link are planned extension points, not active integrations. Existing ecosystem applications and contracts are unchanged. Shuffle requires its own deployment, secrets, and native release configuration.
 
-**Preview deployment:** A dedicated Azure App Service F1 Free plan hosts the web app and API at `https://shuffle-preview-daac2bd8.azurewebsites.net`. Explicit sample-only mode uses isolated seeded households and in-memory SQLite, resetting on host restart. Real accounts and external credentials are disabled. No paid resources or active cross-application contracts are introduced; persistent production storage remains a separate release requirement.
+**Preview deployment:** A dedicated Azure App Service F1 Free plan hosts the web app and API at `https://shuffle-preview-daac2bd8.azurewebsites.net`. Explicit sample-only mode uses isolated seeded households and in-memory SQLite, resetting on host restart. Real accounts and external credentials are disabled. No paid resources or active cross-application contracts are introduced; the sample preview remains separate from persistent alpha storage.
+
+**Private alpha deployment:** A separate F1 Free app at `https://shuffle-alpha-daac2bd8.azurewebsites.net` uses the Shuffle-owned Azure SQL free offer with `useFreeLimit=true` and `AutoPause` on exhaustion. Email-bound admission, consent, operator-assisted recovery/closure, feedback, and encrypted logical backup/restore are available. Hosted reminders reconcile on app load to permit database sleep. Neither free service promises production availability; device checks, support operations, and any public/native release remain operator work. Paid AI, banking, catalog, analytics, messaging, and ecosystem identity integrations are disabled. Existing application contracts and ownership remain unchanged.
 
 ## Open Architecture Questions
 
